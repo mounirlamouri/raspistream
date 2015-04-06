@@ -94,7 +94,7 @@ ws.on('connect', function(connection) {
 
 function startStreaming(connection) {
   setInterval(function() {
-    var process = child_process.spawn('raspistill', ['-w', '640', '480', '-o', './image.jpeg']);
+    var process = child_process.spawn('raspistill', ['-w', '640', '-h', '480', '-o', './image.jpeg']);
     process.on('exit', function() {
       fs.readFile('image.jpeg', function(err, data) {
         if (err) throw err;
