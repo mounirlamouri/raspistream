@@ -3,6 +3,7 @@ var url = require('url');
 var path = require('path');
 var fs = require('fs');
 var WebSocketServer = require('websocket').server;
+var child_process = require('child_process');
 
 // Loading config file.
 var config = null;
@@ -54,12 +55,17 @@ ws = new WebSocketServer({
 ws.on('connect', function(connection) {
   console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' connected.');
 
+  var onconnected = function() {
+    connections[connection] = true;
+    connection.sendUTF('connected');
+    startStreaming(connection);
+  };
+
   if (config && config.password) {
     connections[connection] = false;
     connection.sendUTF('request_password');
   } else {
-    connections[connection] = true;
-    connection.sendUTF('connected');
+    onconnected();
   }
 
   connection.on('message', function(msg) {
@@ -72,8 +78,7 @@ ws.on('connect', function(connection) {
     // Need to be authenticated.
     if (!connections[connection]) {
       if (msg.utf8Data === config.password) {
-        connections[connection] = true;
-        connection.sendUTF('connected');
+        onconnected();
       } else {
         connection.sendUTF('disconnected');
         connection.close();
@@ -86,3 +91,15 @@ ws.on('connect', function(connection) {
       console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
   });
 });
+
+function startStreaming(connection) {
+  setInterval(function() {
+    var process = child_process.spawn('raspistill', ['-w', '640', '480', '-o', './image.jpeg']);
+    process.on('exit', function() {
+      fs.readFile('image.jpeg', function(err, data) {
+        if (err) throw err;
+        connection.sendBytes(data);
+      });
+    });
+  }, 1000);
+}

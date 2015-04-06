@@ -31,7 +31,7 @@ function connectWebSocket() {
         e.preventDefault();
       };
     } else {
-      console.log('received unknown message: ' + e.data);
+      document.querySelector('#stream').src = window.URL.createObjectURL(e.data);
     }
   };
 }
