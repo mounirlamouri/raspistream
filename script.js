@@ -4,8 +4,10 @@ function updateStatus(status) {
   document.querySelector('#status > span').textContent = status;
 }
 
-function connectWebSocket() {
-  var ws = new WebSocket('ws://' + location.host);
+var ws = null;
+
+function connect() {
+  ws = new WebSocket('ws://' + location.host);
 
   ws.onopen = function() {
     console.log('opened');
@@ -36,4 +38,14 @@ function connectWebSocket() {
   };
 }
 
-document.getElementById('start').addEventListener('click', connectWebSocket);
+function disconnect() {
+  if (!ws)
+    return;
+
+  ws.close();
+  updateStatus('disconnected');
+  ws = null;
+}
+
+document.getElementById('start').addEventListener('click', connect);
+document.getElementById('stop').addEventListener('click', disconnect);
