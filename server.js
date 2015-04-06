@@ -54,7 +54,7 @@ ws = new WebSocketServer({
 ws.on('connect', function(connection) {
   console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' connected.');
 
-  if (config.password) {
+  if (config && config.password) {
     connections[connection] = false;
     connection.sendUTF('request_password');
   } else {
