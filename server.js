@@ -4,9 +4,19 @@ var path = require('path');
 var fs = require('fs');
 var WebSocketServer = require('websocket').server;
 
+// Loading config file.
+var config = null;
+try {
+  config = JSON.parse(fs.readFileSync('./config.json'));
+} catch (error) {
+  console.log('Failed to load config.json: ' + error);
+}
+
 var resources = {
   '/index.html': { mime: 'text/html' },
   '/script.js': { mime: 'application/javascript' },
+  '/dialog-polyfill/dialog-polyfill.js': { mime: 'application/javascript' },
+  '/dialog-polyfill/dialog-polyfill.css': { mime: 'text/css' },
 };
 
 var server = new http.createServer(function(request, response) {
@@ -33,6 +43,8 @@ server.listen(8080, function() {
   console.log((new Date()) + ' Server is listening on port 8080');
 });
 
+var connections = {};
+
 ws = new WebSocketServer({
   httpServer: server,
   // TODO: add origin checks
@@ -41,6 +53,34 @@ ws = new WebSocketServer({
 
 ws.on('connect', function(connection) {
   console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' connected.');
+
+  if (config.password) {
+    connections[connection] = false;
+    connection.sendUTF('request_password');
+  } else {
+    connections[connection] = true;
+    connection.sendUTF('connected');
+  }
+
+  connection.on('message', function(msg) {
+    console.log(msg);
+    if (!(connection in connections)) {
+      console.log((new Date()) + ' Error: unexpected connection.');
+      return;
+    }
+
+    // Need to be authenticated.
+    if (!connections[connection]) {
+      if (msg.utf8Data === config.password) {
+        connections[connection] = true;
+        connection.sendUTF('connected');
+      } else {
+        connection.sendUTF('disconnected');
+        connection.close();
+        delete connections[connection];
+      }
+    }
+  });
 
   connection.on('close', function(reasonCode, description) {
       console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');

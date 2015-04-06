@@ -5,12 +5,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Raspistream</title>
+    <link rel="stylesheet" type="text/css" href="dialog-polyfill/dialog-polyfill.css">
     <script src='script.js' async></script>
+    <script src='dialog-polyfill/dialog-polyfill.js' async></script>
   </head>
   <body>
     <div id='container'>
       <div id='stream'>PUT IMAGE HERE</div>
       <button id='start'>START</button>
+      <div id='status'>Status: <span>disconnected</span></div>
     </div>
+    <dialog id='password-dialog'>
+      <form>
+        <label>
+          <div>Stream password:</div>
+          <input type='password' name='password'>
+        </label>
+      </form>
+    </dialog>
   </body>
 </html>
