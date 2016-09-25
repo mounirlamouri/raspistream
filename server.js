@@ -99,7 +99,7 @@ function startStreaming(connection) {
       options.push.apply(options, config.raspistill_options);
     options.push.apply(options, [ '-o', './image.jpeg' ])
 
-    var process = child_process.spawn('raspistill', options);
+    var process = child_process.spawn('ls', options);
     process.on('exit', function() {
       fs.readFile('image.jpeg', function(err, data) {
         if (err) throw err;
